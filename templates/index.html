@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Court Data Fetcher - MVP</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 0 16px; }
+    label{display:block;margin-top:8px}
+    input{padding:8px;width:100%;box-sizing:border-box}
+    button{margin-top:10px;padding:10px 14px}
+    .card{border:1px solid #ddd;padding:12px;margin-top:12px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <h1>Court Data Fetcher — MVP</h1>
+
+  <form id="searchForm">
+    <label>Case Type</label>
+    <input name="case_type" placeholder="e.g., CIVIL" required>
+    <label>Case Number</label>
+    <input name="case_number" placeholder="e.g., 123" required>
+    <label>Year</label>
+    <input name="year" placeholder="e.g., 2025" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('searchForm');
+    const resDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resDiv.innerHTML = 'Searching...';
+      const fd = new FormData(form);
+      try {
+        const r = await fetch('/api/search', { method:'POST', body: fd });
+        const j = await r.json();
+        if (!r.ok) {
+          resDiv.textContent = j.error || 'Error';
+          return;
+        }
+        resDiv.innerHTML = `
+          <div class="card">
+            <strong>Parties:</strong> ${j.parties} <br>
+            <strong>Filing date:</strong> ${j.filing_date} <br>
+            <strong>Next hearing:</strong> ${j.next_hearing} <br>
+            <strong>Status:</strong> ${j.status} <br>
+            <a href="${j.pdf_url}">Download judgment PDF</a>
+          </div>`;
+      } catch (err) {
+        resDiv.textContent = 'Network error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
